@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <link rel="stylesheet" href="css/dashboard.css">
+  <title>Dashboard Administrateur</title>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>📊 Dashboard Administrateur</h1>
+      <div style="display:flex;gap:8px;align-items:center">
+        <span class="small muted">Version app: <strong>v2.3.1</strong></span>
+        <button onclick="logout()" class="nav-btn" style="background:#ef4444;color:#fff;border:none">🚪 Déconnexion</button>
+      </div>
+    </header>
+
+    <!-- KPIs -->
+    <div class="kpis">
+      <div class="kpi red">
+        <div class="label">Total Problèmes</div>
+        <div class="value" id="k-total">0</div>
+      </div>
+      <div class="kpi orange">
+        <div class="label">Ouverts</div>
+        <div class="value" id="k-open">0</div>
+      </div>
+      <div class="kpi green">
+        <div class="label">Résolus</div>
+        <div class="value" id="k-resolved">0</div>
+      </div>
+      <div class="kpi blue">
+        <div class="label">En cours</div>
+        <div class="value" id="k-progress">0</div>
+      </div>
+    </div>
+
+    <!-- Search & Filters -->
+    <div class="card" style="margin-bottom:16px">
+      <div class="search-row">
+        <input id="search-input" placeholder="🔍 Rechercher par ID, login, téléphone, description..." />
+        <select id="filter-province">
+          <option value="">Toutes les provinces</option>
+        </select>
+        <select id="filter-type">
+          <option value="">Tous les types</option>
+        </select>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn ghost" id="filter-all">Tous</button>
+        <button class="btn ghost" id="filter-open">Ouverts</button>
+        <button class="btn ghost" id="filter-resolved">Résolus</button>
+        <button class="btn ghost" id="filter-p1">Priorité 1</button>
+        <button class="btn danger" id="btn-clear-data">🗑️ Réinitialiser données</button>
+      </div>
+    </div>
+
+    <!-- Main content -->
+    <div class="grid-2">
+      <!-- Tickets table -->
+      <div class="card">
+        <h2 style="margin-top:0">Liste des Tickets</h2>
+        <div style="overflow-x:auto">
+          <table id="tickets-table">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Titre du Problème</th>
+                <th>Province</th>
+                <th>Occur.</th>
+                <th>Priorité</th>
+                <th>Assigné</th>
+                <th>Statut</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+        <div id="no-results" style="padding:40px;text-align:center;color:var(--muted);display:none">
+          Aucun ticket trouvé
+        </div>
+      </div>
+
+      <!-- Sidebar -->
+      <div>
+        <!-- Preview -->
+        <div class="card" style="margin-bottom:16px">
+          <h3 style="margin-top:0">Détails du Ticket</h3>
+          <div id="ticket-preview" class="small muted">
+            Sélectionnez un ticket dans la liste pour voir les détails complets.
+          </div>
+        </div>
+
+        <!-- Province stats -->
+        <div class="card" style="margin-bottom:16px">
+          <h3 style="margin-top:0">Statistiques par Province</h3>
+          <div id="province-stats"></div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="card">
+          <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px">
+            <h3 style="margin:0">💡 Gestion FAQ</h3>
+            <button class="btn primary" id="btn-add-faq" style="font-size:13px;padding:6px 12px">➕ Ajouter</button>
+          </div>
+          <div id="faq-list"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Modal: Ticket Details -->
+  <div id="modal-details" class="modal-back">
+    <div class="modal">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:16px">
+        <h3 style="margin:0">Détails Complets</h3>
+        <button class="btn ghost" id="modal-close-details">✕</button>
+      </div>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Modal: Reassign -->
+  <div id="modal-reassign" class="modal-back">
+    <div class="modal">
+      <h3>Réaffecter le ticket <span id="modal-ticket-id"></span></h3>
+      <div style="margin-top:10px">
+        <label>Nouvel assigné (nom complet)</label>
+        <input id="modal-assignee" type="text" placeholder="Ex: Marie Dupont">
+      </div>
+      <div style="margin-top:16px;text-align:right">
+        <button class="btn ghost" id="modal-close-reassign">Annuler</button>
+        <button class="btn primary" id="modal-save-reassign">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+    <!-- Modal: FAQ Management -->
+  <div id="modal-faq" class="modal-back">
+    <div class="modal">
+      <h3 id="faq-modal-title">Ajouter une FAQ</h3>
+      <div style="margin-top:16px">
+        <div style="margin-bottom:12px">
+          <label>Titre/Question *</label>
+          <input id="faq-title" type="text" placeholder="Ex: Problème de synchronisation">
+        </div>
+        <div style="margin-bottom:12px">
+          <label>Solution/Réponse *</label>
+          <textarea id="faq-solution" style="min-height:80px;resize:vertical" placeholder="Ex: Vérifier la connexion réseau et relancer l'application..."></textarea>
+        </div>
+        <div style="margin-bottom:12px">
+          <label>Statut</label>
+          <select id="faq-status">
+            <option value="resolved">✅ Résolu</option>
+            <option value="workaround">⚠️ Solution temporaire</option>
+            <option value="known">ℹ️ Problème connu</option>
+          </select>
+        </div>
+      </div>
+      <div style="margin-top:16px;text-align:right;display:flex;gap:8px;justify-content:flex-end">
+        <button class="btn ghost" id="modal-close-faq">Annuler</button>
+        <button class="btn primary" id="modal-save-faq">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/dashboard.js"></script>
+
+</body>
+</html>

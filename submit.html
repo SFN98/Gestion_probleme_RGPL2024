@@ -1,0 +1,144 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Soumettre un Problème</title>
+  <link rel="stylesheet" href="css/submit.css">
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>🎫 Soumettre un Problème Terrain</h1>
+      <!-- <div>
+        <a href="dashboard.html" class="nav-btn">📊 Accéder au Dashboard</a>
+      </div> -->
+    </header>
+
+      <!-- Loading Screen -->
+      <div id="loading-screen">
+        <div class="loading-content">
+          <div class="loading-logo">🎫</div>
+          <div class="loading-title">Plateforme de Gestion</div>
+          <div class="loading-subtitle">Chargement des données terrain...</div>
+          <div class="spinner"></div>
+          <div class="loading-progress">
+            <div>Initialisation en cours</div>
+            <div class="progress-bar">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    <main class="layout">
+      <!-- Left column: Submit form -->
+      <div>
+        <div class="card">
+          <h2>Nouveau Problème</h2>
+          <p class="small">Formulaire mobile-friendly — la province est détectée automatiquement depuis le login.</p>
+
+          <div id="success-message" class="success-msg">
+            ✅ Problème soumis avec succès !
+          </div>
+
+          <div style="margin-top:12px">
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+              <div>
+                <label>Nom du soumetteur *</label>
+                <input type="text" id="reporter-name" placeholder="Ex: Jean Mvogo" required>
+              </div>
+              <div>
+                <label>Login *</label>
+                <input type="text" id="reporter-login" placeholder="Ex: 2XA123" required>
+                <div class="small muted">Ex: 2XA, 2AA, 5CAABA — la province sera détectée</div>
+              </div>
+              <div>
+                <label>Téléphone *</label>
+                <input type="tel" id="reporter-phone" placeholder="+241 06 00 00 00" required>
+              </div>
+              <div>
+                <label>Type de problème *</label>
+                <select id="problem-type">
+                  <option>Non accès aux questionnaires</option>
+                  <option>Non accès à l'application</option>
+                  <option>Non visibilité du personnel</option>
+                  <option>Non accès aux zones de travail</option>
+                  <option>Non accès aux outils de contrôle</option>
+                  <option>Non accès à la synchronisation des données</option>
+                  <option>Non accès à la synchronisation des paramètres</option>
+                </select>
+              </div>
+              <div>
+                <label>Titre du problème *</label>
+                <input type="text" id="problem-title" placeholder="Ex: Problème de synchronisation" required>
+              </div>
+            </div>
+
+            <div style="margin-top:10px">
+              <label>Description détaillée *</label>
+              <textarea id="problem-desc" placeholder="Décrivez les conditions dans lesquelles le problème est survenu..." required></textarea>
+            </div>
+
+            <div style="margin-top:10px">
+              <label>Images (jpg/png) — max 5MB par image</label>
+              <input id="images-input" type="file" accept="image/*" multiple>
+              <div class="images-preview" id="images-preview"></div>
+            </div>
+
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:12px;flex-wrap:wrap;gap:12px">
+              <div class="small muted">
+                <strong>Province détectée :</strong> <span id="detected-province" style="color:var(--blue);font-weight:600">—</span>
+              </div>
+              <div style="display:flex;gap:8px">
+                <button class="btn ghost" id="btn-reset">Annuler</button>
+                <button class="btn primary" id="btn-submit">Soumettre le problème</button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div style="height:16px"></div>
+
+        <div class="card">
+          <h3>📋 Problèmes déjà déclarés dans votre province</h3>
+          <p class="small muted">Vérifiez si un ticket similaire existe déjà avant de créer un nouveau.</p>
+          <div id="similar-list" style="margin-top:10px"></div>
+        </div>
+      </div>
+
+      <!-- Right column: Info & FAQ -->
+      <aside>
+        <div class="card">
+          <h3>ℹ️ Informations</h3>
+          <div style="margin-top:10px">
+            <p class="small muted">Tous les champs marqués d'un astérisque (*) sont obligatoires.</p>
+            <p class="small muted" style="margin-top:8px">Les notifications seront envoyées automatiquement à l'équipe technique.</p>
+          </div>
+<!-- 
+          <div style="margin-top:14px">
+            <h4 class="small muted" style="font-weight:600">Niveaux de Priorité</h4>
+            <ul class="small" style="margin-top:8px;padding-left:18px">
+              <li style="margin-bottom:6px">Non accès aux questionnaires — <span class="badge p1">P1</span></li>
+              <li style="margin-bottom:6px">Non accès à l'application — <span class="badge p1">P1</span></li>
+              <li style="margin-bottom:6px">Non visibilité du personnel — <span class="badge p2">P2</span></li>
+              <li style="margin-bottom:6px">Non accès aux zones de travail — <span class="badge p2">P2</span></li>
+              <li style="margin-bottom:6px">Non accès aux outils de contrôle — <span class="badge p3">P3</span></li>
+              <li style="margin-bottom:6px">Non accès à la synchro des données/paramètres — <span class="badge p1">P1</span></li>
+            </ul>
+          </div> -->
+        </div>
+
+        <div style="height:12px"></div>
+
+        <div class="card">
+          <h3>💡 FAQ - Solutions Rapides</h3>
+          <div id="faq-section" style="margin-top:8px">
+            <!-- FAQ items will be loaded dynamically -->
+          </div>
+        </div>
+      </aside>
+    </main>
+  </div>
+  <script src="js/submit.js"></script>
+</body>
+</html>
