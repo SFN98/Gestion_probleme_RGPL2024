@@ -1,0 +1,56 @@
+/**
+ * Design system — Variables (couleurs, tokens, typo)
+ * RGPL 2024 — Bleu, noir, vert ; jaune en exception
+ */
+
+:root {
+  /* Palette nominale */
+  --shamrock: #009e60;
+  --golden-pollen: #ffcc33;
+  --regal-navy: #004080;
+  --white-smoke: #f4f4f4;
+  --carbon-black: #252525;
+
+  /* Rôles sémantiques */
+  --color-primary: var(--regal-navy);
+  --color-success: var(--shamrock);
+  --color-accent: var(--golden-pollen);
+  --color-surface: var(--white-smoke);
+  --color-text: var(--carbon-black);
+  --color-text-muted: #5a5a5a;
+  --muted: #5a5a5a;
+  --color-border: #d4d4d4;
+  --color-error: #b91c1c;
+
+  /* Dérivés pour états */
+  --color-primary-hover: #003366;
+  --color-primary-focus: rgba(0, 64, 128, 0.2);
+  --color-success-hover: #007a4d;
+  --color-surface-elevated: #fff;
+
+  /* Espacements */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+
+  /* Rayons */
+  --radius-sm: 4px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* Ombres */
+  --shadow-sm: 0 1px 2px rgba(37, 37, 37, 0.06);
+  --shadow-md: 0 4px 12px rgba(37, 37, 37, 0.08);
+
+  /* Typographie */
+  --font-sans: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+  --text-base: clamp(0.9375rem, 0.9rem + 0.2vw, 1rem);
+  --text-sm: clamp(0.8125rem, 0.8rem + 0.1vw, 0.875rem);
+  --text-lg: clamp(1.125rem, 1rem + 0.5vw, 1.25rem);
+  --text-xl: clamp(1.25rem, 1.1rem + 0.6vw, 1.5rem);
+  --line-height-tight: 1.25;
+  --line-height-normal: 1.5;
+}
