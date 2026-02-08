@@ -1,0 +1,14 @@
+# Racine web = ce dossier (projet en sous-dossier)
+# Tout passe par index.php : le bootstrap sert les assets /public/* en PHP.
+# Ne pas "pass through" pour /public/ sinon Apache sert (et 404) au lieu de PHP.
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Fichier ou dossier existant (hors public/) → servir en direct
+    RewriteCond %{REQUEST_FILENAME} -f [OR]
+    RewriteCond %{REQUEST_FILENAME} -d
+    RewriteRule ^ - [L]
+
+    # Tout le reste (y compris /public/css/...) → index.php (bootstrap sert les assets)
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>

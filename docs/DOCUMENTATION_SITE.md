@@ -285,5 +285,6 @@ Lorsqu’un fichier (pièce jointe ticket ou PDF bibliothèque) **dépasse la li
 - Mettre en place un **backend** (API ou rendu serveur) pour tickets, FAQ et authentification.  
 - **Persistance** : base de données ou fichiers pour tickets et FAQ.  
 - **Sécurité** : authentification côté serveur pour les administrateurs, HTTPS, gestion des sessions (agents vs administrateurs).
+- **Optimisations** : plateforme fluide et adaptée aux réseaux lents (pages légères, loader, cache, timeouts/retry, pagination si besoin) ; **prise de ticket atomique** avec verrouillage côté serveur pour éviter que deux contrôleurs prennent le même ticket (détail dans `docs/ARCHITECTURE.md`, section 7).
 
 Cette documentation sert de référence fonctionnelle et technique pour la suite du développement.

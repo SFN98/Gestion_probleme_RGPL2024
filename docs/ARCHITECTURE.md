@@ -75,6 +75,7 @@ Gestion_probleme_RGPL2024/
 ├── docs/                         # Documentation
 │   ├── ARCHITECTURE.md            # Ce fichier — structure et rôles
 │   ├── DOCUMENTATION_SITE.md      # Spécification fonctionnelle (parcours, données, règles)
+│   ├── ROADMAP.md                 # Phases de développement (plan de réalisation)
 │   └── ANALYSE_ETAT_ACTUEL.md    # Analyse avant migration
 │
 ├── README.md
@@ -229,3 +230,44 @@ document.getElementById('app-loader').classList.add('is-hidden');
 5. La réponse HTML est envoyée ; les assets (CSS, JS, images) sont servis depuis **public/**.
 
 Les anciens fichiers HTML à la racine et le dossier **js/** à la racine sont dépréciés : les écrans et scripts seront migrés vers la structure ci-dessus (templates/pages, public/js).
+
+---
+
+## 7. Optimisations
+
+### 7.1 Fluidité et adaptation aux réseaux lents
+
+La plateforme doit rester fluide et utilisable sur des connexions lentes. Principes à respecter :
+
+- **Pages légères** : HTML minimal par écran, CSS/JS regroupés et chargés dans l’ordre (design-system, base, components). Éviter les scripts ou librairies lourdes inutiles.
+- **Loader** : afficher le composant Loader pendant le chargement des données (liste tickets, résultats recherche, etc.) pour donner un retour visuel immédiat ; le masquer une fois la réponse reçue.
+- **Cache navigateur** : envoyer des en-têtes HTTP adaptés sur les assets statiques (CSS, JS, images dans `public/`) : `Cache-Control` avec `max-age` raisonnable (ex. 1 an avec nom de fichier ou hash dans l’URL pour invalidation). Les pages HTML peuvent être en `no-cache` ou courte durée pour refléter les mises à jour.
+- **Payloads limités** : ne pas charger en une fois des listes énormes (ex. tickets) ; prévoir une **pagination** ou un chargement par lots si le volume augmente. Pour le dashboard, limiter le nombre de tickets renvoyés par requête si besoin.
+- **Timeouts et retry** : côté client (JS), définir un timeout sur les requêtes (ex. 30 s) et proposer un message clair en cas d’échec (« Réseau lent ou indisponible. Réessayer ? ») avec un bouton pour relancer la requête. Éviter les attentes infinies sans feedback.
+- **Compression** : activer la compression gzip (ou équivalent) côté serveur pour les réponses HTML/CSS/JS afin de réduire le volume transféré sur liens lents.
+- **Priorité au contenu visible** : charger en priorité ce qui est affiché en premier (above the fold) ; images ou blocs secondaires peuvent être chargés en différé (lazy load) si pertinent.
+
+### 7.2 File / verrouillage pour la prise de ticket (éviter la double prise)
+
+**Problème** : deux contrôleurs peuvent cliquer « Prendre le ticket » sur le même ticket au même moment ; sans garde-fou, les deux pourraient être considérés comme assignés.
+
+**Principe** : traiter la **prise de ticket comme une opération atomique** côté serveur. Une seule requête « prendre le ticket X » doit aboutir ; les autres doivent recevoir une erreur explicite.
+
+**Côté serveur (TicketService ou équivalent)** :
+
+1. Lors de la requête « prendre le ticket `ticketId` » (avec l’identifiant du contrôleur connecté) :
+   - **Verrouiller** la ressource (le ticket ou le fichier/table des tickets) le temps de la lecture et de la mise à jour.
+     - **Avec fichiers JSON** : utiliser `flock()` (verrou exclusif) sur le fichier `data/tickets.json` (ou sur un fichier de lock dédié) pendant la lecture, la vérification du statut et l’écriture. Si le ticket est encore `open`, mettre à jour `status` et `assignee`, puis sauvegarder ; sinon, retourner une erreur « Ticket déjà pris ».
+     - **Avec base de données** : exécuter une mise à jour conditionnelle du type `UPDATE tickets SET status = 'progress', assignee = ? WHERE id = ? AND status = 'open'` ; si le nombre de lignes modifiées est 0, le ticket était déjà pris ou résolu → retourner erreur.
+2. **Réponse** :
+   - **Succès** : ticket mis à jour (statut « En cours de traitement », assigné = contrôleur demandeur) ; retourner les données à jour.
+   - **Échec** : retourner un code ou message explicite (ex. `ticket_already_taken` ou « Ce ticket a déjà été pris par [nom] ») pour que le client puisse afficher un message et rafraîchir la liste.
+
+**Côté client (dashboard)** :
+
+- Au clic sur « Prendre le ticket », **désactiver immédiatement** le bouton (ou afficher un état « En cours… ») pour limiter les double-clics.
+- Envoyer la requête au serveur ; à la réponse :
+  - **Succès** : mettre à jour l’affichage (statut, assigné) et la liste des tickets.
+  - **Échec (déjà pris)** : afficher un message du type « Ce ticket a déjà été pris par [nom]. La liste va se rafraîchir. » et **rafraîchir la liste** des tickets (ou mettre à jour l’entrée concernée) pour refléter l’état réel.
+
+Ainsi, la « file » des prises est implicite : la première requête valide qui atteint le serveur et trouve le ticket encore `open` l’obtient ; les autres reçoivent une erreur claire et peuvent voir le ticket déjà assigné après rafraîchissement.

@@ -1,0 +1,16 @@
+# Utilisé UNIQUEMENT si DocumentRoot pointe sur ce dossier (public/).
+# Dans ta config actuelle (racine web = dossier projet), ce fichier n'est pas pris en compte :
+# c'est le .htaccess à la racine du projet qui gère tout.
+# Réécriture type Laravel/Symfony : fichiers réels servis directement, le reste → index.php
+<IfModule mod_rewrite.c>
+    <IfModule mod_negotiation.c>
+        Options -MultiViews
+    </IfModule>
+
+    RewriteEngine On
+
+    # Si le fichier ou le dossier existe → ne pas réécrire (servir en statique)
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteRule ^ index.php [L,QSA]
+</IfModule>

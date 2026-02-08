@@ -1,0 +1,27 @@
+# Médias uploadés (ne pas versionner)
+public/uploads/tickets/*
+!public/uploads/tickets/.gitkeep
+public/uploads/pdf-library/*
+!public/uploads/pdf-library/.gitkeep
+
+# Stockage optionnel hors document root
+storage/
+
+# Données sensibles (optionnel : décommenter si users.json ne doit pas être versionné)
+# data/users.json
+
+# Configuration BDD (credentials) — garder database.php.example versionné
+config/database.php
+
+# Système et IDE
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# Logs et cache
+*.log
+cache/

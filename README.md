@@ -26,6 +26,7 @@ Application web permettant de **centraliser les problemes** lies au fonctionneme
 
 - **Documentation detaillee** : [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) (structure, roles des dossiers/fichiers, stockage des medias, loader).
 - **Specification fonctionnelle** : [docs/DOCUMENTATION_SITE.md](docs/DOCUMENTATION_SITE.md) (parcours agent/controleur, ecrans, modele de donnees, regles metier).
+- **Roadmap** : [docs/ROADMAP.md](docs/ROADMAP.md) (phases de developpement : fondations, cote agent, cote controleur, medias, finition).
 
 ---
 
@@ -40,11 +41,42 @@ Application web permettant de **centraliser les problemes** lies au fonctionneme
 ## Installation / demarrage
 
 1. Cloner ou copier le projet sur le serveur (ou en local).
-2. Definir la **racine web** sur le dossier du projet (ou se trouve `index.php`) ou sur `public/` selon votre configuration.
-3. Verifier que les dossiers **public/uploads/tickets/** et **public/uploads/pdf-library/** sont crees et inscriptibles (ou les creer a la premiere utilisation).
-4. Les assets (CSS, JS) sont dans **public/** ; les URLs doivent pointer vers eux (ex. `/css/design-system.css` si la racine est le projet, ou `/public/css/...` selon la config).
+2. Verifier que **public/uploads/tickets/** et **public/uploads/pdf-library/** existent et sont inscriptibles.
 
-Pour l'instant, le **backend (routage, services, persistance)** est a implementer selon l'architecture decrite dans `docs/ARCHITECTURE.md`. Les anciennes pages HTML a la racine sont depreciees et seront remplacees par les modules PHP.
+### Racine web = public/ (recommandé ? type Laravel/Symfony)
+
+**Recommandé** pour serveur interne (ex. `gestion.dgs.capi`) : configurer Apache pour que la **racine web (DocumentRoot)** pointe sur le dossier **public/** du projet.
+
+- **Apache (vhost)** : `DocumentRoot /chemin/vers/Gestion_probleme_RGPL2024/public`
+- **URL** : `http://gestion.dgs.capi/` (sans `/public`, sans sous-dossier)
+- **Assets** : servis directement en `/css/`, `/js/`, `/assets/` (pas de 404 sur les CSS)
+- Aucune modification dans `config/app.php` : `public/index.php` definit `WEB_ROOT_IS_PUBLIC` et les URLs sont gérées automatiquement.
+- La réécriture est dans **public/.htaccess** (fichier ou dossier existant ? servi en statique, sinon ? index.php).
+
+### Racine web = dossier projet (sous-dossier, ex. WAMP sans vhost)
+
+Si la racine web est le **dossier du projet** (ex. `www\Gestion_probleme_RGPL2024\`) :
+
+- **URL** : `http://localhost/Gestion_probleme_RGPL2024/` ou `http://gestion.dgs.capi/Gestion_probleme_RGPL2024/`
+- **config/app.php** : garder `APP_BASE_URL = '/Gestion_probleme_RGPL2024'` (ou le nom du dossier).
+- **.htaccess** à la racine du projet : `RewriteBase /Gestion_probleme_RGPL2024/` ; les requêtes vers des fichiers réels (-f, -d) ne sont pas réécrites.
+- Activer **mod_rewrite** (WAMP : Apache > Charger les modules > rewrite_module).
+
+### Base de donnees MySQL (WAMP / MariaDB)
+
+L'application utilise **MySQL** si `config/database.php` est configuré, sinon elle continue d'utiliser les fichiers JSON dans `data/` (tickets, FAQ, pdf-library).
+
+**Mise en place :**
+
+1. Copier `config/database.php.example` en `config/database.php` et renseigner `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASSWORD`.
+2. Lancer la création de la base et des tables (en CLI) :
+   ```bash
+   php scripts/init-db.php
+   ```
+   Le script crée la base `rgpl2024`, les tables `tickets`, `faq`, `pdf_library`, `users`, et insère le compte contrôleur de test (admin / password).
+3. Connexion PDO : `getDb()` dans `src/Utils/db.php` retourne l?instance PDO ou `null` si la BDD n?est pas configurée.
+
+**Schéma SQL :** `migrations/001_initial.sql` (peut être exécuté manuellement avec le client MySQL si besoin).
 
 ---
 
