@@ -32,7 +32,7 @@ if (defined('WEB_ROOT_IS_PUBLIC') && WEB_ROOT_IS_PUBLIC) {
 define('UPLOAD_PATH_TICKETS', PUBLIC_PATH . '/uploads/tickets');
 define('UPLOAD_PATH_PDF_LIBRARY', PUBLIC_PATH . '/uploads/pdf-library');
 
-define('UPLOAD_MAX_SIZE_TICKET_MB', 5);
+define('UPLOAD_MAX_SIZE_TICKET_MB', 15);
 define('UPLOAD_MAX_SIZE_PDF_MB', 20);
 
 define('DATA_TICKETS', DATA_PATH . '/tickets.json');
