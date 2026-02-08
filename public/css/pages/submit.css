@@ -1,0 +1,132 @@
+/**
+ * Page de soumission — Styles spécifiques
+ */
+
+.submit-form {
+  max-width: 100%;
+}
+
+.submit-form .form-group label {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.submit-form .form-group label[for="attachments"] i {
+  color: var(--color-primary);
+  margin-left: auto;
+}
+
+.submit-form input[type="file"] {
+  padding: var(--space-2);
+  border: 2px dashed var(--color-border);
+  border-radius: var(--radius-md);
+  background-color: var(--color-surface);
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.submit-form input[type="file"]:hover {
+  border-color: var(--color-primary);
+}
+
+.submit-form input[type="file"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-focus);
+}
+
+.images-preview {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+}
+
+.success-card {
+  text-align: center;
+}
+
+.success-card .success-icon {
+  display: block;
+  font-size: 3rem;
+  color: var(--color-success);
+  margin-bottom: var(--space-3);
+  text-align: center;
+}
+
+.success-card .actions-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+}
+
+.success-card .actions-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.ticket-id-section {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  flex-wrap: wrap;
+  margin: var(--space-4) 0;
+  padding: var(--space-4);
+  background-color: var(--color-surface);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border);
+}
+
+.ticket-id-section p {
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+#ticket-id-display {
+  font-family: 'Courier New', monospace;
+  font-size: 1.25rem;
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+#copy-ticket-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+#copy-ticket-btn.btn--success {
+  background-color: var(--color-success);
+  border-color: var(--color-success);
+}
+
+#copy-ticket-btn.btn--success:hover {
+  filter: brightness(1.1);
+}
+
+@media (min-width: 640px) {
+  .submit-form {
+    max-width: 600px;
+  }
+  
+  .images-preview {
+    grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  }
+  
+  .success-card .actions-links {
+    flex-direction: row;
+    justify-content: center;
+  }
+}
+
+@media (min-width: 1024px) {
+  .submit-form {
+    max-width: 700px;
+  }
+}

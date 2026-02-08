@@ -1,0 +1,102 @@
+/**
+ * Page de recherche — Styles spécifiques
+ */
+
+.search-form-card {
+  margin-bottom: var(--space-5);
+}
+
+.search-form-card form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-4);
+}
+
+.search-form-card .form-group {
+  margin-bottom: 0;
+}
+
+.search-form-card input[type="search"] {
+  padding-left: 2.5rem;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 512 512'%3E%3Cpath fill='%235a5a5a' d='M416 208c0 45.9-14.9 88.3-40 122.7L502.6 457.4c12.5 12.5 12.5 32.8 0 45.3s-32.8 12.5-45.3 0L330.7 376c-34.4 25.2-76.8 40-122.7 40C93.1 416 0 322.9 0 208S93.1 0 208 0S416 93.1 416 208zM208 352a144 144 0 1 0 0-288 144 144 0 1 0 0 288z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 0.75rem center;
+  background-size: 1rem;
+}
+
+.search-form-card .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  align-self: flex-start;
+}
+
+/* Icône gérée dans le HTML */
+
+.results-section {
+  margin-top: var(--space-6);
+}
+
+.results-section > h2 {
+  margin-bottom: var(--space-4);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.results-section > h2 i {
+  color: var(--color-primary);
+}
+
+.search-results-tickets,
+.search-results-faq,
+.search-results-pdf {
+  margin-bottom: var(--space-4);
+}
+
+.search-results-tickets h3 i,
+.search-results-faq h3 i,
+.search-results-pdf h3 i {
+  margin-right: var(--space-2);
+  color: var(--color-primary);
+}
+
+.result-list li {
+  position: relative;
+  padding-left: 2rem;
+}
+
+.result-list li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: var(--space-3);
+  width: 6px;
+  height: 6px;
+  background-color: var(--color-primary);
+  border-radius: 50%;
+}
+
+.result-list .btn {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-top: var(--space-2);
+}
+
+/* Icône gérée dans le HTML */
+
+@media (min-width: 640px) {
+  .search-form-card form {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+  
+  .search-form-card .form-group {
+    flex: 1;
+  }
+  
+  .search-form-card .btn {
+    flex-shrink: 0;
+  }
+}

@@ -11,6 +11,8 @@ class FaqService
         return [
             'id' => $row['id'],
             'title' => $row['title'] ?? '',
+            'category' => $row['category'] ?? '',
+            'question' => $row['question'] ?? ($row['title'] ?? ''),
             'solution' => $row['solution'] ?? '',
             'status' => $row['status'] ?? 'resolved',
             'createdAt' => isset($row['created_at']) ? date('c', strtotime($row['created_at'])) : date('c'),
@@ -57,7 +59,7 @@ class FaqService
         }
         $words = preg_split('/\s+/u', mb_strtolower($query), -1, PREG_SPLIT_NO_EMPTY);
         return array_values(array_filter($list, function ($item) use ($words) {
-            $text = mb_strtolower(($item['title'] ?? '') . ' ' . ($item['solution'] ?? ''));
+            $text = mb_strtolower(($item['title'] ?? '') . ' ' . ($item['question'] ?? '') . ' ' . ($item['solution'] ?? ''));
             foreach ($words as $w) {
                 if (mb_strpos($text, $w) === false) {
                     return false;
@@ -75,11 +77,13 @@ class FaqService
 
         if ($pdo !== null) {
             $stmt = $pdo->prepare(
-                'INSERT INTO faq (id, title, solution, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)'
+                'INSERT INTO faq (id, title, category, question, solution, status, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
             );
             $stmt->execute([
                 $id,
                 $data['title'] ?? '',
+                $data['category'] ?? '',
+                $data['question'] ?? '',
                 $data['solution'] ?? '',
                 $data['status'] ?? 'resolved',
                 $now,
@@ -92,6 +96,8 @@ class FaqService
         $list[] = [
             'id' => $id,
             'title' => $data['title'] ?? '',
+            'category' => $data['category'] ?? '',
+            'question' => $data['question'] ?? '',
             'solution' => $data['solution'] ?? '',
             'status' => $data['status'] ?? 'resolved',
             'createdAt' => date('c'),
@@ -106,7 +112,7 @@ class FaqService
         $pdo = getDb();
         if ($pdo !== null) {
             $stmt = $pdo->prepare(
-                'UPDATE faq SET title = ?, solution = ?, status = ?, updated_at = ? WHERE id = ?'
+                'UPDATE faq SET title = ?, category = ?, question = ?, solution = ?, status = ?, updated_at = ? WHERE id = ?'
             );
             $existing = self::getById($id);
             if (!$existing) {
@@ -114,6 +120,8 @@ class FaqService
             }
             $stmt->execute([
                 $data['title'] ?? $existing['title'],
+                $data['category'] ?? $existing['category'] ?? '',
+                $data['question'] ?? $existing['question'] ?? '',
                 $data['solution'] ?? $existing['solution'],
                 $data['status'] ?? $existing['status'],
                 date('Y-m-d H:i:s'),
@@ -126,6 +134,8 @@ class FaqService
         foreach ($list as $i => $item) {
             if (isset($item['id']) && (string) $item['id'] === (string) $id) {
                 $list[$i]['title'] = $data['title'] ?? $item['title'];
+                $list[$i]['category'] = $data['category'] ?? $item['category'] ?? '';
+                $list[$i]['question'] = $data['question'] ?? $item['question'] ?? '';
                 $list[$i]['solution'] = $data['solution'] ?? $item['solution'];
                 $list[$i]['status'] = $data['status'] ?? $item['status'];
                 $list[$i]['updatedAt'] = date('c');

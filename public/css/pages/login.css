@@ -1,0 +1,152 @@
+/**
+ * Page de connexion — Styles spécifiques
+ */
+
+.bg-animation {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;
+  overflow: hidden;
+}
+
+.bg-circle {
+  position: absolute;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-success) 100%);
+  opacity: 0.05;
+  animation: float 20s infinite ease-in-out;
+}
+
+.bg-circle:nth-child(1) {
+  width: 300px;
+  height: 300px;
+  top: -100px;
+  left: -100px;
+  animation-delay: 0s;
+}
+
+.bg-circle:nth-child(2) {
+  width: 200px;
+  height: 200px;
+  bottom: -50px;
+  right: -50px;
+  animation-delay: 5s;
+}
+
+.bg-circle:nth-child(3) {
+  width: 150px;
+  height: 150px;
+  top: 50%;
+  right: 10%;
+  animation-delay: 10s;
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translate(0, 0) scale(1);
+  }
+  33% {
+    transform: translate(30px, -30px) scale(1.1);
+  }
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+}
+
+.login-container {
+  position: relative;
+  z-index: 1;
+}
+
+.login-header {
+  text-align: center;
+  margin-bottom: clamp(2rem, 4vw, 3rem);
+}
+
+.login-header .logo {
+  font-size: clamp(2.5rem, 6vw, 4rem);
+  margin-bottom: clamp(1rem, 2vw, 1.5rem);
+}
+
+.login-header .logo i {
+  color: var(--color-primary);
+}
+
+.login-title {
+  margin-bottom: clamp(0.75rem, 1.5vw, 1rem);
+  color: var(--color-primary);
+  font-size: clamp(1.5rem, 4vw, 2rem);
+}
+
+.login-subtitle {
+  color: var(--color-text-muted);
+  font-size: clamp(0.875rem, 2vw, 1rem);
+}
+
+.form-options {
+  margin-bottom: clamp(1.25rem, 3vw, 1.75rem);
+}
+
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  cursor: pointer;
+  user-select: none;
+}
+
+.checkbox-wrapper input[type="checkbox"] {
+  width: 1.125rem;
+  height: 1.125rem;
+  cursor: pointer;
+  accent-color: var(--color-primary);
+  flex-shrink: 0;
+}
+
+.btn-login {
+  width: 100%;
+  padding: clamp(0.875rem, 2vw, 1rem) clamp(1.25rem, 3vw, 1.75rem);
+  background-color: var(--color-primary);
+  color: #fff;
+  border: none;
+  border-radius: var(--radius-md);
+  font-weight: 600;
+  font-size: clamp(1rem, 2.5vw, 1.125rem);
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  min-height: clamp(3rem, 6vw, 3.5rem);
+}
+
+/* Icône gérée dans le HTML */
+
+.btn-login:hover {
+  background-color: var(--color-primary-hover);
+  transform: translateY(-1px);
+}
+
+.btn-login:active {
+  transform: translateY(0);
+}
+
+.login-footer {
+  margin-top: clamp(1.5rem, 3vw, 2rem);
+  text-align: center;
+}
+
+.login-footer a {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  color: var(--color-text-muted);
+  font-size: clamp(0.8125rem, 1.5vw, 0.9375rem);
+}
+
+/* Icône gérée dans le HTML */
+/* Note: Les media queries pour .login-container sont dans components.css */

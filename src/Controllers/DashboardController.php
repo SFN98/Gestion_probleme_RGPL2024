@@ -28,8 +28,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             
         case 'resolve':
             $ticketId = $_POST['ticketId'] ?? '';
-            $response = $_POST['response'] ?? '';
-            $success = TicketService::markResolved($ticketId, $response, $username);
+            $solutionType = $_POST['solutionType'] ?? 'text';
+            $solutionContent = $_POST['solutionContent'] ?? '';
+            $solutionFile = '';
+            
+            // Gérer l'upload de fichier si nécessaire
+            if ($solutionType === 'pdf' || $solutionType === 'video') {
+                if (isset($_FILES['solutionFile']) && $_FILES['solutionFile']['error'] === UPLOAD_ERR_OK) {
+                    $uploadResult = MediaStorageService::storeSolutionFile($_FILES['solutionFile'], $ticketId, $solutionType);
+                    if (!$uploadResult['success']) {
+                        echo json_encode(['success' => false, 'error' => $uploadResult['error']]);
+                        exit;
+                    }
+                    $solutionFile = $uploadResult['fileUrl'];
+                } else {
+                    echo json_encode(['success' => false, 'error' => 'Aucun fichier fourni pour la solution.']);
+                    exit;
+                }
+            }
+            
+            $success = TicketService::markResolved($ticketId, $solutionType, $solutionContent, $solutionFile, $username);
             echo json_encode(['success' => $success]);
             exit;
             
@@ -43,6 +61,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         case 'faq_create':
             $data = [
                 'title' => $_POST['title'] ?? '',
+                'category' => $_POST['category'] ?? $_POST['title'] ?? '',
+                'question' => $_POST['question'] ?? '',
                 'solution' => $_POST['solution'] ?? '',
                 'status' => $_POST['status'] ?? 'resolved',
             ];
@@ -54,6 +74,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $id = $_POST['id'] ?? '';
             $data = [
                 'title' => $_POST['title'] ?? '',
+                'category' => $_POST['category'] ?? $_POST['title'] ?? '',
+                'question' => $_POST['question'] ?? '',
                 'solution' => $_POST['solution'] ?? '',
                 'status' => $_POST['status'] ?? 'resolved',
             ];
@@ -68,14 +90,26 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
             
         case 'pdf_create':
+            require_once BASE_PATH . '/src/Services/MediaStorageService.php';
             $keywords = json_decode($_POST['keywords'] ?? '[]', true);
             if (!is_array($keywords)) {
                 $keywords = [];
             }
+            $fileUrl = '';
+            if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadResult = MediaStorageService::storePdfLibrary($_FILES['pdf_file']);
+                if (!$uploadResult['success']) {
+                    echo json_encode(['success' => false, 'error' => $uploadResult['error']]);
+                    exit;
+                }
+                $fileUrl = $uploadResult['fileUrl'];
+            } elseif (!empty($_POST['fileUrl'])) {
+                $fileUrl = $_POST['fileUrl'];
+            }
             $data = [
                 'title' => $_POST['title'] ?? '',
                 'description' => $_POST['description'] ?? '',
-                'fileUrl' => $_POST['fileUrl'] ?? '',
+                'fileUrl' => $fileUrl,
                 'keywords' => $keywords,
             ];
             $id = PdfLibraryService::create($data);
@@ -83,15 +117,33 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
             
         case 'pdf_update':
+            require_once BASE_PATH . '/src/Services/MediaStorageService.php';
             $id = $_POST['id'] ?? '';
+            $existing = PdfLibraryService::getById($id);
+            if (!$existing) {
+                echo json_encode(['success' => false, 'error' => 'PDF non trouvé']);
+                exit;
+            }
             $keywords = json_decode($_POST['keywords'] ?? '[]', true);
             if (!is_array($keywords)) {
                 $keywords = [];
             }
+            $oldFileUrl = $existing['fileUrl'] ?? null;
+            $fileUrl = $oldFileUrl;
+            if (isset($_FILES['pdf_file']) && $_FILES['pdf_file']['error'] === UPLOAD_ERR_OK) {
+                $uploadResult = MediaStorageService::storePdfLibrary($_FILES['pdf_file'], $oldFileUrl);
+                if (!$uploadResult['success']) {
+                    echo json_encode(['success' => false, 'error' => $uploadResult['error']]);
+                    exit;
+                }
+                $fileUrl = $uploadResult['fileUrl'];
+            } elseif (!empty($_POST['fileUrl'])) {
+                $fileUrl = $_POST['fileUrl'];
+            }
             $data = [
                 'title' => $_POST['title'] ?? '',
                 'description' => $_POST['description'] ?? '',
-                'fileUrl' => $_POST['fileUrl'] ?? '',
+                'fileUrl' => $fileUrl,
                 'keywords' => $keywords,
             ];
             $success = PdfLibraryService::update($id, $data);
@@ -99,7 +151,12 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             exit;
             
         case 'pdf_delete':
+            require_once BASE_PATH . '/src/Services/MediaStorageService.php';
             $id = $_POST['id'] ?? '';
+            $existing = PdfLibraryService::getById($id);
+            if ($existing && !empty($existing['fileUrl'])) {
+                MediaStorageService::deleteFile($existing['fileUrl']);
+            }
             $success = PdfLibraryService::delete($id);
             echo json_encode(['success' => $success]);
             exit;
@@ -120,7 +177,25 @@ $filters = [
     'search' => $_GET['search'] ?? '',
 ];
 
-$tickets = TicketService::getFiltered($filters);
+$totalTickets = TicketService::countFiltered($filters);
+$perPage = 50;
+$page = isset($_GET['page']) ? max(1, (int)$_GET['page']) : 1;
+$pagination = null;
+
+if ($totalTickets > $perPage) {
+    $totalPages = ceil($totalTickets / $perPage);
+    $offset = ($page - 1) * $perPage;
+    $tickets = TicketService::getFiltered($filters, $perPage, $offset);
+    $pagination = [
+        'page' => $page,
+        'totalPages' => $totalPages,
+        'total' => $totalTickets,
+        'perPage' => $perPage,
+    ];
+} else {
+    $tickets = TicketService::getFiltered($filters);
+}
+
 $faq = FaqService::getAll();
 $pdfLibrary = PdfLibraryService::getAll();
 

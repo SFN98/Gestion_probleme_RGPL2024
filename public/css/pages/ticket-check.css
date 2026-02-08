@@ -1,0 +1,91 @@
+/**
+ * Page consultation ticket — Styles spécifiques
+ */
+
+#form-ticket-check {
+  max-width: 100%;
+}
+
+#form-ticket-check .form-group label i {
+  color: var(--color-primary);
+  margin-right: var(--space-2);
+}
+
+#form-ticket-check input[type="text"] {
+  text-transform: uppercase;
+  font-family: monospace;
+  font-weight: 600;
+  letter-spacing: 0.1em;
+}
+
+.ticket-result {
+  margin-top: var(--space-5);
+}
+
+.ticket-result .card h2 {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: 0;
+}
+
+.ticket-result .card h2 i {
+  color: var(--color-primary);
+}
+
+.ticket-result .card p {
+  margin-bottom: var(--space-2);
+}
+
+.ticket-result .card p strong {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.ticket-result .card p strong::after {
+  content: ':';
+}
+
+.ticket-result .card p[data-status] strong i {
+  font-size: 0.75rem;
+  margin-right: var(--space-1);
+}
+
+.ticket-result .card p[data-status="open"] strong i {
+  color: var(--color-error);
+}
+
+.ticket-result .card p[data-status="progress"] strong i {
+  color: var(--color-accent);
+}
+
+.ticket-result .card p[data-status="resolved"] strong i {
+  color: var(--color-success);
+}
+
+.ticket-response {
+  position: relative;
+  padding-left: var(--space-4);
+}
+
+.ticket-response::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background-color: var(--color-success);
+  border-radius: var(--radius-sm);
+}
+
+@media (min-width: 640px) {
+  #form-ticket-check {
+    max-width: 500px;
+  }
+  
+  .ticket-result .card {
+    max-width: 700px;
+  }
+}

@@ -10,29 +10,40 @@ $username = $currentUser['username'] ?? '';
 $problemTypes = ProvinceHelper::getProblemTypes();
 ?>
 <header class="page-header">
-  <h1>Dashboard Administrateur</h1>
-  <div class="header-actions">
-    <span class="muted">Connecté : <?php echo escapeHtml($currentUser['display_name'] ?? $username); ?></span>
-    <a href="<?php echo escapeHtml($appBase); ?>/logout" class="btn btn--ghost">Déconnexion</a>
-  </div>
+  <h1>
+    <i class="fas fa-tachometer-alt"></i>
+    <span>Dashboard Administrateur</span>
+  </h1>
 </header>
 
 <!-- KPI -->
 <div class="kpis">
   <div class="kpi">
-    <div class="label">Total</div>
+    <div class="label">
+      <i class="fas fa-ticket-alt"></i>
+      <span>Total</span>
+    </div>
     <div class="value"><?php echo $kpis['total']; ?></div>
   </div>
   <div class="kpi red">
-    <div class="label">Ouverts</div>
+    <div class="label">
+      <i class="fas fa-circle"></i>
+      <span>Ouverts</span>
+    </div>
     <div class="value"><?php echo $kpis['open']; ?></div>
   </div>
   <div class="kpi orange">
-    <div class="label">En cours</div>
+    <div class="label">
+      <i class="fas fa-hourglass-half"></i>
+      <span>En cours</span>
+    </div>
     <div class="value"><?php echo $kpis['progress']; ?></div>
   </div>
   <div class="kpi green">
-    <div class="label">Résolus</div>
+    <div class="label">
+      <i class="fas fa-check-circle"></i>
+      <span>Résolus</span>
+    </div>
     <div class="value"><?php echo $kpis['resolved']; ?></div>
   </div>
 </div>
@@ -83,13 +94,13 @@ $problemTypes = ProvinceHelper::getProblemTypes();
           <tbody>
             <?php foreach ($tickets as $t): ?>
               <tr data-ticket-id="<?php echo escapeHtml($t['id']); ?>">
-                <td><?php echo escapeHtml($t['id']); ?></td>
-                <td><?php echo escapeHtml($t['title']); ?></td>
-                <td><?php echo escapeHtml($t['province']); ?></td>
-                <td><?php echo $t['occurrences']; ?></td>
-                <td><span class="badge badge--<?php echo strtolower($t['priority']); ?>"><?php echo escapeHtml($t['priority']); ?></span></td>
-                <td><?php echo escapeHtml($t['assignee']); ?></td>
-                <td>
+                <td data-label="ID"><?php echo escapeHtml($t['id']); ?></td>
+                <td data-label="Titre"><?php echo escapeHtml($t['title']); ?></td>
+                <td data-label="Province"><?php echo escapeHtml($t['province']); ?></td>
+                <td data-label="Occurrences"><?php echo $t['occurrences']; ?></td>
+                <td data-label="Priorité"><span class="badge badge--<?php echo strtolower($t['priority']); ?>"><?php echo escapeHtml($t['priority']); ?></span></td>
+                <td data-label="Assigné"><?php echo escapeHtml($t['assignee'] ?: 'Non assigné'); ?></td>
+                <td data-label="Statut">
                   <?php
                   $statusLabels = ['open' => 'Ouvert', 'progress' => 'En cours', 'resolved' => 'Résolu'];
                   $status = $t['status'] ?? 'open';
@@ -98,7 +109,7 @@ $problemTypes = ProvinceHelper::getProblemTypes();
                   ?>
                   <span class="<?php echo $class; ?>"><?php echo escapeHtml($label); ?></span>
                 </td>
-                <td class="actions">
+                <td class="actions" data-label="Actions">
                   <?php if ($status === 'open'): ?>
                     <button class="btn btn--sm btn--primary" onclick="takeTicket('<?php echo escapeHtml($t['id']); ?>')">Prendre</button>
                   <?php elseif ($status === 'progress' && $t['assignee'] === $username): ?>
@@ -113,6 +124,27 @@ $problemTypes = ProvinceHelper::getProblemTypes();
             <?php endforeach; ?>
           </tbody>
         </table>
+        <?php if (!empty($pagination)): ?>
+          <div class="pagination" style="margin-top: var(--space-4); display: flex; justify-content: space-between; align-items: center;">
+            <div>
+              Page <?php echo $pagination['page']; ?> sur <?php echo $pagination['totalPages']; ?> (<?php echo $pagination['total']; ?> tickets au total)
+            </div>
+            <div>
+              <?php if ($pagination['page'] > 1): ?>
+                <a href="?<?php echo http_build_query(array_merge($filters, ['page' => $pagination['page'] - 1])); ?>" class="btn btn--sm btn--ghost">
+                  <i class="fas fa-arrow-left"></i>
+                  <span>Précédent</span>
+                </a>
+              <?php endif; ?>
+              <?php if ($pagination['page'] < $pagination['totalPages']): ?>
+                <a href="?<?php echo http_build_query(array_merge($filters, ['page' => $pagination['page'] + 1])); ?>" class="btn btn--sm btn--ghost">
+                  <span>Suivant</span>
+                  <i class="fas fa-arrow-right"></i>
+                </a>
+              <?php endif; ?>
+            </div>
+          </div>
+        <?php endif; ?>
       <?php endif; ?>
     </div>
   </div>
@@ -222,8 +254,35 @@ $problemTypes = ProvinceHelper::getProblemTypes();
       <form id="form-resolve">
         <input type="hidden" id="resolve-ticket-id">
         <div class="form-group">
-          <label for="resolve-response">Réponse / solution *</label>
-          <textarea id="resolve-response" rows="5" required></textarea>
+          <label for="resolve-solution-type">Type de solution *</label>
+          <select id="resolve-solution-type" required onchange="toggleSolutionFields()">
+            <option value="">-- Sélectionner un type --</option>
+            <option value="text">Texte (explication du processus)</option>
+            <option value="pdf">PDF (document avec les étapes)</option>
+            <option value="video">Vidéo explicative</option>
+          </select>
+        </div>
+        <div class="form-group" id="resolve-text-group" style="display: none;">
+          <label for="resolve-response">Explication du processus *</label>
+          <textarea id="resolve-response" rows="6" placeholder="Décrivez étape par étape comment résoudre le problème..."></textarea>
+        </div>
+        <div class="form-group" id="resolve-pdf-group" style="display: none;">
+          <label for="resolve-pdf-file">Document PDF *</label>
+          <input type="file" id="resolve-pdf-file" accept=".pdf" onchange="handlePdfFileSelect(this)">
+          <small class="form-hint">Téléversez un document PDF contenant les étapes de résolution</small>
+          <div id="resolve-pdf-preview" style="margin-top: var(--space-2); display: none;">
+            <span id="resolve-pdf-name"></span>
+            <button type="button" class="btn btn--sm btn--ghost" onclick="clearPdfFile()">Supprimer</button>
+          </div>
+        </div>
+        <div class="form-group" id="resolve-video-group" style="display: none;">
+          <label for="resolve-video-file">Vidéo explicative *</label>
+          <input type="file" id="resolve-video-file" accept="video/*" onchange="handleVideoFileSelect(this)">
+          <small class="form-hint">Téléversez une vidéo explicative (MP4, WebM, etc.)</small>
+          <div id="resolve-video-preview" style="margin-top: var(--space-2); display: none;">
+            <span id="resolve-video-name"></span>
+            <button type="button" class="btn btn--sm btn--ghost" onclick="clearVideoFile()">Supprimer</button>
+          </div>
         </div>
         <div class="modal__actions">
           <button type="button" onclick="closeModal('modal-resolve')" class="btn btn--ghost">Annuler</button>
@@ -245,12 +304,17 @@ $problemTypes = ProvinceHelper::getProblemTypes();
       <form id="form-faq">
         <input type="hidden" id="faq-id">
         <div class="form-group">
-          <label for="faq-title">Titre *</label>
-          <input type="text" id="faq-title" required>
+          <label for="faq-title">Titre / Catégorie *</label>
+          <input type="text" id="faq-title" placeholder="Ex: Connexion, Synchronisation, Erreur..." required>
+          <small class="form-hint">Catégorie ou titre de classification</small>
         </div>
         <div class="form-group">
-          <label for="faq-solution">Solution *</label>
-          <textarea id="faq-solution" rows="5" required></textarea>
+          <label for="faq-question">Question *</label>
+          <textarea id="faq-question" rows="3" placeholder="Ex: Comment résoudre un problème de connexion ?" required></textarea>
+        </div>
+        <div class="form-group">
+          <label for="faq-solution">Réponse / Solution *</label>
+          <textarea id="faq-solution" rows="5" placeholder="Ex: Vérifier la connexion réseau et relancer l'application..." required></textarea>
         </div>
         <div class="form-group">
           <label for="faq-status">Statut</label>
@@ -277,7 +341,7 @@ $problemTypes = ProvinceHelper::getProblemTypes();
       <button onclick="closeModal('modal-pdf')" class="btn btn--ghost">✕</button>
     </div>
     <div class="modal__body">
-      <form id="form-pdf">
+      <form id="form-pdf" enctype="multipart/form-data">
         <input type="hidden" id="pdf-id">
         <div class="form-group">
           <label for="pdf-title">Titre *</label>
@@ -288,8 +352,9 @@ $problemTypes = ProvinceHelper::getProblemTypes();
           <textarea id="pdf-description" rows="3"></textarea>
         </div>
         <div class="form-group">
-          <label for="pdf-file-url">URL du fichier</label>
-          <input type="text" id="pdf-file-url" placeholder="/uploads/pdf-library/...">
+          <label for="pdf-file">Fichier PDF *</label>
+          <input type="file" id="pdf-file" name="pdf_file" accept="application/pdf">
+          <small class="muted">Maximum 20 Mo. <span id="pdf-current-file"></span></small>
         </div>
         <div class="form-group">
           <label for="pdf-keywords">Mots clés (séparés par des virgules)</label>
@@ -311,4 +376,5 @@ window.faqData = <?php echo json_encode($faq); ?>;
 window.pdfData = <?php echo json_encode($pdfLibrary); ?>;
 window.currentUsername = <?php echo json_encode($username); ?>;
 window.appBase = <?php echo json_encode($appBase); ?>;
+window.baseUrl = <?php echo json_encode($baseUrl); ?>;
 </script>

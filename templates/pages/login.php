@@ -11,7 +11,9 @@ $redirect = $redirect ?? '/dashboard';
 
 <div class="login-container">
   <div class="login-header">
-    <div class="logo">🔐</div>
+    <div class="logo">
+      <i class="fas fa-lock"></i>
+    </div>
     <h1 class="login-title">Connexion Dashboard</h1>
     <p class="login-subtitle">Accès administrateur sécurisé</p>
   </div>
@@ -43,19 +45,15 @@ $redirect = $redirect ?? '/dashboard';
     </div>
 
     <button type="submit" class="btn-login">
+      <i class="fas fa-sign-in-alt"></i>
       <span class="btn-text">Se connecter</span>
     </button>
   </form>
 
-  <div class="demo-box">
-    <div class="title">Compte de démonstration</div>
-    <div class="credentials">
-      Identifiant : <code>admin</code><br>
-      Mot de passe : <code>password</code>
-    </div>
-  </div>
-
   <div class="login-footer">
-    <a href="<?php echo escapeHtml($appBase); ?>/">← Retour à la page de soumission</a>
+    <a href="<?php echo escapeHtml($appBase); ?>/">
+      <i class="fas fa-arrow-left"></i>
+      <span>Retour à la page de soumission</span>
+    </a>
   </div>
 </div>

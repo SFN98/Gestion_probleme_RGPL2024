@@ -50,7 +50,21 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             'province' => $province,
             'priority' => $priority,
         ]);
-        $success = true;
+
+        // Gestion des pièces jointes
+        if (isset($_FILES['attachments']) && $_FILES['attachments']['error'][0] !== UPLOAD_ERR_NO_FILE) {
+            require_once BASE_PATH . '/src/Services/MediaStorageService.php';
+            $uploadResult = MediaStorageService::storeTicketMedia($ticketId, $_FILES['attachments']);
+            if (isset($uploadResult['errors']) && !empty($uploadResult['errors'])) {
+                $errors = array_merge($errors, $uploadResult['errors']);
+            } elseif (isset($uploadResult['paths']) && !empty($uploadResult['paths'])) {
+                TicketService::updateImages($ticketId, $uploadResult['paths']);
+            }
+        }
+
+        if (empty($errors)) {
+            $success = true;
+        }
     } else {
         $province = $login !== '' ? ProvinceHelper::getProvinceFromLogin($login) : '';
     }

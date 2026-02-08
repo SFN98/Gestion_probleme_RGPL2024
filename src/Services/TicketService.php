@@ -27,6 +27,9 @@ class TicketService
             'status' => $row['status'] ?? 'open',
             'assignee' => $row['assignee'] ?? '',
             'response' => $row['response'] ?? '',
+            'solutionType' => $row['solution_type'] ?? 'text',
+            'solutionContent' => $row['solution_content'] ?? '',
+            'solutionFile' => $row['solution_file'] ?? '',
             'firstReportedAt' => isset($row['first_reported_at']) ? date('c', strtotime($row['first_reported_at'])) : date('c'),
             'lastUpdatedAt' => isset($row['last_updated_at']) ? date('c', strtotime($row['last_updated_at'])) : date('c'),
         ];
@@ -246,12 +249,14 @@ class TicketService
     /**
      * Marquer un ticket comme résolu
      */
-    public static function markResolved(string $ticketId, string $response, string $assignee): bool
+    public static function markResolved(string $ticketId, string $solutionType, string $solutionContent, string $solutionFile, string $assignee): bool
     {
         $pdo = getDb();
         if ($pdo !== null) {
-            $stmt = $pdo->prepare('UPDATE tickets SET status = ?, response = ?, last_updated_at = NOW() WHERE id = ? AND assignee = ?');
-            $stmt->execute(['resolved', $response, $ticketId, $assignee]);
+            // Pour compatibilité avec l'ancien système, on garde response pour le texte
+            $response = ($solutionType === 'text') ? $solutionContent : '';
+            $stmt = $pdo->prepare('UPDATE tickets SET status = ?, response = ?, solution_type = ?, solution_content = ?, solution_file = ?, last_updated_at = NOW() WHERE id = ? AND assignee = ?');
+            $stmt->execute(['resolved', $response, $solutionType, $solutionContent, $solutionFile, $ticketId, $assignee]);
             return $stmt->rowCount() > 0;
         }
         $list = loadJsonFile(DATA_TICKETS);
@@ -261,7 +266,10 @@ class TicketService
         foreach ($list as $i => $t) {
             if (isset($t['id']) && (string) $t['id'] === (string) $ticketId && ($t['assignee'] ?? '') === $assignee) {
                 $list[$i]['status'] = 'resolved';
-                $list[$i]['response'] = $response;
+                $list[$i]['response'] = ($solutionType === 'text') ? $solutionContent : '';
+                $list[$i]['solutionType'] = $solutionType;
+                $list[$i]['solutionContent'] = $solutionContent;
+                $list[$i]['solutionFile'] = $solutionFile;
                 $list[$i]['lastUpdatedAt'] = date('c');
                 return saveJsonFile(DATA_TICKETS, $list);
             }
@@ -295,9 +303,37 @@ class TicketService
     }
 
     /**
-     * Liste filtrée de tickets
+     * Met à jour les images d'un ticket
      */
-    public static function getFiltered(array $filters = []): array
+    public static function updateImages(string $ticketId, array $imagePaths): bool
+    {
+        $pdo = getDb();
+        $imagesJson = json_encode($imagePaths);
+
+        if ($pdo !== null) {
+            $stmt = $pdo->prepare('UPDATE tickets SET images = ?, last_updated_at = NOW() WHERE id = ?');
+            $stmt->execute([$imagesJson, $ticketId]);
+            return $stmt->rowCount() > 0;
+        }
+
+        $list = loadJsonFile(DATA_TICKETS);
+        if (!is_array($list)) {
+            return false;
+        }
+        foreach ($list as $i => $t) {
+            if (isset($t['id']) && (string) $t['id'] === (string) $ticketId) {
+                $list[$i]['images'] = $imagePaths;
+                $list[$i]['lastUpdatedAt'] = date('c');
+                return saveJsonFile(DATA_TICKETS, $list);
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Liste filtrée de tickets avec pagination optionnelle
+     */
+    public static function getFiltered(array $filters = [], ?int $limit = null, ?int $offset = null): array
     {
         $pdo = getDb();
         if ($pdo !== null) {
@@ -326,11 +362,14 @@ class TicketService
                 $params[] = $search;
                 $params[] = $search;
             }
-            $sql = 'SELECT * FROM tickets';
-            if (!empty($where)) {
-                $sql .= ' WHERE ' . implode(' AND ', $where);
+            $whereClause = !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
+            $sql = 'SELECT * FROM tickets' . $whereClause . ' ORDER BY first_reported_at ASC';
+            if ($limit !== null) {
+                $sql .= ' LIMIT ' . (int)$limit;
+                if ($offset !== null) {
+                    $sql .= ' OFFSET ' . (int)$offset;
+                }
             }
-            $sql .= ' ORDER BY first_reported_at ASC';
             $stmt = $pdo->prepare($sql);
             $stmt->execute($params);
             $rows = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -339,29 +378,78 @@ class TicketService
         // Fallback JSON
         $list = self::getAll();
         if (empty($filters)) {
-            return $list;
-        }
-        return array_values(array_filter($list, function ($t) use ($filters) {
-            if (!empty($filters['status']) && ($t['status'] ?? '') !== $filters['status']) {
-                return false;
-            }
-            if (!empty($filters['province']) && ($t['province'] ?? '') !== $filters['province']) {
-                return false;
-            }
-            if (!empty($filters['type']) && ($t['type'] ?? '') !== $filters['type']) {
-                return false;
-            }
-            if (!empty($filters['priority']) && ($t['priority'] ?? '') !== $filters['priority']) {
-                return false;
-            }
-            if (!empty($filters['search'])) {
-                $search = mb_strtolower($filters['search']);
-                $text = mb_strtolower(($t['title'] ?? '') . ' ' . ($t['desc'] ?? '') . ' ' . ($t['login'] ?? ''));
-                if (mb_strpos($text, $search) === false) {
+            $filtered = $list;
+        } else {
+            $filtered = array_values(array_filter($list, function ($t) use ($filters) {
+                if (!empty($filters['status']) && ($t['status'] ?? '') !== $filters['status']) {
                     return false;
                 }
+                if (!empty($filters['province']) && ($t['province'] ?? '') !== $filters['province']) {
+                    return false;
+                }
+                if (!empty($filters['type']) && ($t['type'] ?? '') !== $filters['type']) {
+                    return false;
+                }
+                if (!empty($filters['priority']) && ($t['priority'] ?? '') !== $filters['priority']) {
+                    return false;
+                }
+                if (!empty($filters['search'])) {
+                    $search = mb_strtolower($filters['search']);
+                    $text = mb_strtolower(($t['title'] ?? '') . ' ' . ($t['desc'] ?? '') . ' ' . ($t['login'] ?? ''));
+                    if (mb_strpos($text, $search) === false) {
+                        return false;
+                    }
+                }
+                return true;
+            }));
+        }
+        if ($limit !== null) {
+            $offset = $offset ?? 0;
+            return array_slice($filtered, $offset, $limit);
+        }
+        return $filtered;
+    }
+
+    /**
+     * Compte le nombre total de tickets avec filtres
+     */
+    public static function countFiltered(array $filters = []): int
+    {
+        $pdo = getDb();
+        if ($pdo !== null) {
+            $where = [];
+            $params = [];
+            if (!empty($filters['status'])) {
+                $where[] = 'status = ?';
+                $params[] = $filters['status'];
             }
-            return true;
-        }));
+            if (!empty($filters['province'])) {
+                $where[] = 'province = ?';
+                $params[] = $filters['province'];
+            }
+            if (!empty($filters['type'])) {
+                $where[] = 'type = ?';
+                $params[] = $filters['type'];
+            }
+            if (!empty($filters['priority'])) {
+                $where[] = 'priority = ?';
+                $params[] = $filters['priority'];
+            }
+            if (!empty($filters['search'])) {
+                $search = '%' . $filters['search'] . '%';
+                $where[] = '(title LIKE ? OR `desc` LIKE ? OR login LIKE ?)';
+                $params[] = $search;
+                $params[] = $search;
+                $params[] = $search;
+            }
+            $whereClause = !empty($where) ? ' WHERE ' . implode(' AND ', $where) : '';
+            $sql = 'SELECT COUNT(*) FROM tickets' . $whereClause;
+            $stmt = $pdo->prepare($sql);
+            $stmt->execute($params);
+            return (int)$stmt->fetchColumn();
+        }
+        // Fallback JSON
+        $list = self::getFiltered($filters);
+        return count($list);
     }
 }

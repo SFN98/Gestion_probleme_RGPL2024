@@ -34,6 +34,11 @@ if (strpos($path, '/public/') === 0) {
         $mime = $types[$ext] ?? 'application/octet-stream';
         header('Content-Type: ' . $mime);
         header('Content-Length: ' . filesize($assetPath));
+        // Cache HTTP pour assets statiques (1 an)
+        if (in_array($ext, ['css', 'js', 'png', 'jpg', 'jpeg', 'gif', 'webp', 'svg', 'woff', 'woff2', 'ico'])) {
+            header('Cache-Control: public, max-age=31536000, immutable');
+            header('Expires: ' . gmdate('D, d M Y H:i:s', time() + 31536000) . ' GMT');
+        }
         readfile($assetPath);
         return;
     }
@@ -66,6 +71,7 @@ require_once BASE_PATH . '/src/Services/AuthService.php';
 require_once BASE_PATH . '/src/Services/TicketService.php';
 require_once BASE_PATH . '/src/Services/FaqService.php';
 require_once BASE_PATH . '/src/Services/PdfLibraryService.php';
+require_once BASE_PATH . '/src/Services/MediaStorageService.php';
 
 // Initialiser la session
 AuthService::initSession();

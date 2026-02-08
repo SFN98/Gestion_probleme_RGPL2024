@@ -21,16 +21,29 @@ $province = $province ?? '';
 
 <?php if ($success && $ticketId): ?>
   <div class="card success-card">
+    <i class="fas fa-check-circle success-icon"></i>
     <p><strong>Votre problème a été enregistré.</strong></p>
-    <p>Numéro de ticket : <strong><?php echo escapeHtml($ticketId); ?></strong></p>
+    <div class="ticket-id-section">
+      <p>Numéro de ticket : <strong id="ticket-id-display"><?php echo escapeHtml($ticketId); ?></strong></p>
+      <button type="button" class="btn btn--sm btn--primary" onclick="copyTicketId('<?php echo escapeHtml($ticketId); ?>')" id="copy-ticket-btn">
+        <i class="fas fa-copy"></i>
+        <span>Copier le code</span>
+      </button>
+    </div>
     <div class="actions-links">
-      <a href="<?php echo escapeHtml($appBase); ?>/ticket">Consulter l'état de mon ticket</a>
-      <a href="<?php echo escapeHtml($appBase); ?>/soumettre" class="btn--ghost">Soumettre un autre problème</a>
+      <a href="<?php echo escapeHtml($appBase); ?>/ticket">
+        <i class="fas fa-ticket-alt"></i>
+        <span>Consulter l'état de mon ticket</span>
+      </a>
+      <a href="<?php echo escapeHtml($appBase); ?>/soumettre" class="btn--ghost">
+        <i class="fas fa-plus-circle"></i>
+        <span>Soumettre un autre problème</span>
+      </a>
     </div>
   </div>
 <?php else: ?>
   <div class="card">
-    <form method="post" action="<?php echo escapeHtml($appBase); ?>/soumettre" id="form-submit" class="submit-form">
+    <form method="post" action="<?php echo escapeHtml($appBase); ?>/soumettre" id="form-submit" class="submit-form" enctype="multipart/form-data">
       <div class="form-group">
         <label for="reporterName">Nom du soumetteur *</label>
         <input type="text" id="reporterName" name="reporterName" required value="<?php echo escapeHtml($_POST['reporterName'] ?? ''); ?>">
@@ -66,9 +79,24 @@ $province = $province ?? '';
         <label for="desc">Description détaillée *</label>
         <textarea id="desc" name="desc" required rows="5"><?php echo escapeHtml($_POST['desc'] ?? ''); ?></textarea>
       </div>
+      <div class="form-group">
+        <label for="attachments">
+          <span>Pièces jointes (images/vidéos, max 5 Mo par fichier)</span>
+          <i class="fas fa-paperclip"></i>
+        </label>
+        <input type="file" id="attachments" name="attachments[]" multiple accept="image/*,video/*">
+        <small class="muted">Formats acceptés : images (JPG, PNG, GIF, WebP), vidéos (MP4, WebM, QuickTime). Maximum 5 Mo par fichier.</small>
+        <div id="attachments-preview" class="images-preview" style="margin-top: var(--space-3);"></div>
+      </div>
       <div class="form-actions">
-        <a href="<?php echo escapeHtml($appBase); ?>/" class="btn btn--ghost">Annuler</a>
-        <button type="submit" class="btn btn--primary">Soumettre le problème</button>
+        <a href="<?php echo escapeHtml($appBase); ?>/" class="btn btn--ghost">
+          <i class="fas fa-times"></i>
+          <span>Annuler</span>
+        </a>
+        <button type="submit" class="btn btn--primary">
+          <i class="fas fa-paper-plane"></i>
+          <span>Soumettre le problème</span>
+        </button>
       </div>
     </form>
   </div>
